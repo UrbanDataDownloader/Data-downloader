@@ -50,8 +50,14 @@
     return div.innerHTML;
   }
 
+
+  const API_BASE = (window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE)
+    ? window.__APP_CONFIG__.API_BASE.replace(/\/$/, "")
+    : "";
+
   async function apiFetch(path, options) {
-    const res = await fetch(path, options);
+    const url = `${API_BASE}${path}`;
+    const res = await fetch(url, options);
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(payload.detail || payload.message || `HTTP ${res.status}`);
