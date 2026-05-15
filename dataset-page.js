@@ -4,6 +4,8 @@
   const core = window.DatasetJobPageCore;
   const POLL_INTERVAL_MS = 1600;
   const RUNNING_STATES = new Set(["searching", "judging_bundle", "downloading"]);
+  const APP_CONFIG = window.__APP_CONFIG__ || {};
+  const API_BASE = String(APP_CONFIG.API_BASE || "").replace(/\/+$/, "");
 
   let currentJob = null;
   let candidates = [];
@@ -50,14 +52,14 @@
     return div.innerHTML;
   }
 
-
-  const API_BASE = (window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE)
-    ? window.__APP_CONFIG__.API_BASE.replace(/\/$/, "")
-    : "";
+  function apiUrl(path) {
+    if (!API_BASE) return path;
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  }
 
   async function apiFetch(path, options) {
-    const url = `${API_BASE}${path}`;
-    const res = await fetch(url, options);
+    const res = await fetch(apiUrl(path), options);
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(payload.detail || payload.message || `HTTP ${res.status}`);
