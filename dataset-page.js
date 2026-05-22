@@ -1,10 +1,9 @@
 (function () {
   "use strict";
-  const APP_CONFIG = window.__APP_CONFIG__ || {};
-  const API_BASE = String(APP_CONFIG.API_BASE || "").replace(/\/+$/, "");
+
   const core = window.DatasetJobPageCore;
-  const APP_CONFIG = window.__APP_CONFIG__ || {};
-  const API_BASE = String(APP_CONFIG.API_BASE || "").replace(/\/+$/, "");
+  const DATASET_PAGE_CONFIG = window.__APP_CONFIG__ || {};
+  const API_BASE = String(DATASET_PAGE_CONFIG.API_BASE || "").replace(/\/+$/, "");
   const POLL_INTERVAL_MS = 1600;
   const RUNNING_STATES = new Set(["searching", "judging_bundle", "planning_resources", "downloading"]);
 
