@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dataset Job Web</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=20260516-failure-details" />
 </head>
 <body>
   <div class="dataset-layout">
@@ -37,13 +37,28 @@
       <section class="dataset-section">
         <div class="decision-grid">
           <label class="field">
-            <span>Title</span>
-            <input class="dataset-inline-input" id="jobTitle" placeholder="Urban heat island risk" />
+            <span>Input mode</span>
+            <select id="inputMode">
+              <option value="idea">Research idea</option>
+              <option value="dataset_requirement">Single dataset requirement</option>
+            </select>
           </label>
-          <label class="field">
-            <span>Abstract</span>
-            <textarea id="jobAbstract" rows="5" placeholder="Describe the data needed for the idea."></textarea>
-          </label>
+          <div id="ideaInputFields" class="mode-fields">
+            <label class="field">
+              <span>Title</span>
+              <input class="dataset-inline-input" id="jobTitle" placeholder="Urban heat island risk" />
+            </label>
+            <label class="field">
+              <span>Abstract</span>
+              <textarea id="jobAbstract" rows="5" placeholder="Describe the data needed for the idea."></textarea>
+            </label>
+          </div>
+          <div id="datasetRequirementFields" class="mode-fields" hidden>
+            <label class="field">
+              <span>Dataset requirement</span>
+              <textarea id="jobDatasetRequirement" rows="5" placeholder="Enter a dataset requirement statement."></textarea>
+            </label>
+          </div>
           <label class="field">
             <span>Platform hints</span>
             <textarea id="jobPlatformHints" class="dataset-hint-textarea" rows="4" placeholder="One platform name/URL/domain per line."></textarea>
@@ -63,6 +78,14 @@
           <span class="pill" id="currentJobId">No job</span>
         </div>
         <p class="status-line muted" id="stateMessage">Create a job or load one from recent jobs.</p>
+        <button id="retryFailedStepButton" class="secondary" hidden>Retry failed step</button>
+      </section>
+
+      <section class="dataset-section" id="requirementsSection" hidden>
+        <div class="dataset-section-head compact">
+          <h2>Requirements</h2>
+        </div>
+        <div id="requirementRows" class="requirements-list"></div>
       </section>
 
       <section class="dataset-section" id="candidateSection" hidden>
@@ -87,7 +110,6 @@
                 <th>Dataset</th>
                 <th>Provider</th>
                 <th>Role</th>
-                <th>Score</th>
                 <th>Coverage</th>
                 <th>Reject</th>
               </tr>
@@ -148,6 +170,16 @@
         </div>
       </section>
 
+      <section class="dataset-section" id="resourcePlanSection" hidden>
+        <div class="dataset-section-head">
+          <div>
+            <p class="settings-kicker">Resource plan</p>
+            <h2>Planned resources</h2>
+          </div>
+        </div>
+        <div id="resourcePlanRows"></div>
+      </section>
+
       <section class="dataset-section" id="resultSection" hidden>
         <div class="dataset-section-head">
           <div>
@@ -184,7 +216,7 @@
   </div>
 
   <script src="./config.js"></script>
-  <script src="./dataset-page-core.js"></script>
-  <script src="./dataset-page.js"></script>
+  <script src="./dataset-page-core.js?v=20260518-resource-plan"></script>
+  <script src="./dataset-page.js?v=20260518-resource-plan"></script>
 </body>
 </html>
