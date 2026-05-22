@@ -1,6 +1,7 @@
 (function () {
   "use strict";
-
+  const APP_CONFIG = window.__APP_CONFIG__ || {};
+  const API_BASE = String(APP_CONFIG.API_BASE || "").replace(/\/+$/, "");
   const core = window.DatasetJobPageCore;
   const APP_CONFIG = window.__APP_CONFIG__ || {};
   const API_BASE = String(APP_CONFIG.API_BASE || "").replace(/\/+$/, "");
