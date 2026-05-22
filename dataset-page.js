@@ -3,7 +3,7 @@
 
   const core = window.DatasetJobPageCore;
   const DATASET_PAGE_CONFIG = window.__APP_CONFIG__ || {};
-  const API_BASE = String(DATASET_PAGE_CONFIG.API_BASE || "").replace(/\/+$/, "");
+  const DATASET_PAGE_API_BASE = String(DATASET_PAGE_CONFIG.API_BASE || "").replace(/\/+$/, "");
   const POLL_INTERVAL_MS = 1600;
   const RUNNING_STATES = new Set(["searching", "judging_bundle", "planning_resources", "downloading"]);
 
@@ -88,7 +88,7 @@
   }
 
   function apiUrl(path) {
-    return `${API_BASE}${path}`;
+    return `${DATASET_PAGE_API_BASE}${path}`;
   }
 
   async function apiFetch(path, options) {
