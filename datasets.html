@@ -3,220 +3,227 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dataset Job Web</title>
-  <link rel="stylesheet" href="./style.css?v=20260516-failure-details" />
+  <title>Urban Dataset Downloader</title>
+  <link rel="stylesheet" href="./style.css?v=20260606-auth-v1" />
 </head>
-<body>
-  <div class="dataset-layout">
+<body class="dataset-workbench">
+  <div class="dataset-shell" id="datasetShell" data-sidebar="open">
     <header class="dataset-topbar">
       <div class="topbar-left">
+        <button type="button" class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle recent jobs">☰</button>
         <div class="topbar-brand">
           <span class="brand-mark" aria-hidden="true"></span>
           <div class="topbar-titles">
-            <span class="app-title">Dataset Job Web</span>
-            <span class="app-tagline">Local provider pipeline and reviewed downloads</span>
+            <span class="app-title">Urban Dataset Downloader</span>
+            <span class="app-tagline">Find, verify, and download research data</span>
           </div>
         </div>
       </div>
       <div class="topbar-right">
-        <span class="pill" id="llmBadge">LLM unknown</span>
-        <span class="pill" id="serpBadge">SERP unknown</span>
+        <span class="connection-pill" id="connectionBadge"><span class="connection-dot"></span>Server ready</span>
+        <span class="pill" id="authBadge">Not signed in</span>
+        <button type="button" class="action-btn topbar-logout" id="logoutBtn" hidden>Logout</button>
+        <span class="pill provider-pill" id="llmBadge">LLM unknown</span>
+        <span class="pill provider-pill" id="serpBadge">SERP unknown</span>
         <span class="pill" id="jobStatusBadge">Ready</span>
       </div>
     </header>
 
-    <main class="dataset-main">
-      <section class="dataset-section dataset-context-panel">
-        <div>
-          <p class="settings-kicker">New Job</p>
-          <h1>Find and download datasets</h1>
-          <p class="muted">Submit an idea title and abstract. The local backend creates a persistent job, finds candidates, waits for review, and downloads approved URLs server-side.</p>
+    <div class="dataset-body">
+      <aside class="recent-sidebar" id="recentSidebar">
+        <div class="recent-sidebar-head">
+          <button type="button" class="new-search-btn" id="newSearchBtn">+ New Search</button>
+          <button type="button" class="icon-btn compact" id="refreshJobsBtn" aria-label="Refresh recent jobs">↻</button>
         </div>
-      </section>
+        <div class="recent-title-row">
+          <span>Recent Jobs</span>
+        </div>
+        <div id="recentJobs" class="recent-job-list"></div>
+      </aside>
 
-      <section class="dataset-section">
-        <div class="decision-grid">
-          <label class="field">
-            <span>Input mode</span>
-            <select id="inputMode">
-              <option value="idea">Research idea</option>
-              <option value="dataset_requirement">Single dataset requirement</option>
-            </select>
-          </label>
-          <div id="ideaInputFields" class="mode-fields">
+      <main class="dataset-main">
+        <section class="canvas-panel search-canvas" id="inputCanvas">
+          <div class="input-hero">
+            <p class="settings-kicker">New Search</p>
+            <h1>What research dataset do you need?</h1>
+            <p class="muted">Describe the data you want. The server will search open data sources, verify candidates, and ask for confirmation before downloading.</p>
+          </div>
+
+          <div class="composer-card">
+            <label class="field input-mode-field">
+              <span>Input mode</span>
+              <select id="inputMode">
+                <option value="dataset_requirement">Single dataset requirement</option>
+                <option value="idea">Research idea</option>
+              </select>
+            </label>
+
+            <div id="ideaInputFields" class="mode-fields">
+              <label class="field">
+                <span>Title</span>
+                <input class="dataset-inline-input" id="jobTitle" placeholder="Urban heat island risk" />
+              </label>
+              <label class="field">
+                <span>Abstract</span>
+                <textarea id="jobAbstract" rows="4" placeholder="Describe the research idea and the data needed."></textarea>
+              </label>
+            </div>
+
+            <div id="datasetRequirementFields" class="mode-fields" hidden>
+              <label class="field">
+                <span>Dataset requirement</span>
+                <textarea id="jobDatasetRequirement" rows="5" placeholder="Example: sleep data in the United States with public health statistics"></textarea>
+              </label>
+            </div>
+
+            <label class="field platform-field">
+              <span>Platform hints</span>
+              <textarea id="jobPlatformHints" class="dataset-hint-textarea" rows="3" placeholder="Optional: ArcGIS, Kaggle, Zenodo, data.gov"></textarea>
+            </label>
+
+            <div class="dataset-submit-row">
+              <button type="button" class="send-btn" id="createJobBtn">Create job</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="canvas-panel state-canvas" id="statePanel">
+          <div class="dataset-section-head">
+            <div>
+              <p class="settings-kicker">Current Search</p>
+              <h2 id="currentJobTitle">No search loaded</h2>
+            </div>
+            <span class="pill" id="currentJobId">Ready</span>
+          </div>
+          <p class="status-line muted" id="stateMessage">Create a search or load one from recent jobs.</p>
+          <div class="job-activity" id="jobActivityIndicator" hidden>
+            <div>
+              <span class="activity-spinner" aria-hidden="true"></span>
+            </div>
+            <div>
+              <strong id="jobActivityText">Searching for datasets...</strong>
+              <span id="jobActivitySubtext">Checking open data platforms and metadata indexes.</span>
+            </div>
+            <button type="button" class="stop-search-btn" id="stopSearchBtn">Stop tracking</button>
+          </div>
+          <div class="skeleton-stack" id="searchSkeleton" hidden>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card short"></div>
+            <div class="skeleton-card"></div>
+          </div>
+          <button id="retryFailedStepButton" class="secondary" hidden>Retry failed step</button>
+        </section>
+
+        <section class="canvas-panel" id="resourcePlanSection" hidden>
+          <div class="dataset-section-head">
+            <div>
+              <p class="settings-kicker">Results</p>
+              <h2>Datasets found</h2>
+            </div>
+          </div>
+          <div id="downloadPreviewSummary" class="download-preview-summary"></div>
+          <div id="resourcePlanRows" class="dataset-card-flow"></div>
+          <div class="floating-action-bar" id="downloadConfirmRow" hidden>
+            <span id="selectionSummary">0 datasets selected. Files will be saved to the research server.</span>
+            <button type="button" class="send-btn" id="forceDownloadBtn">Confirm & Download</button>
+          </div>
+        </section>
+
+        <section class="canvas-panel result-panel" id="resultSection" hidden>
+          <div class="dataset-section-head">
+            <div>
+              <p class="settings-kicker">Saved Files</p>
+              <h2>Downloaded files</h2>
+            </div>
+          </div>
+          <div class="server-save-note">Files have been saved to your research server.</div>
+          <div class="dataset-table-wrap">
+            <table class="dataset-table">
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Size</th>
+                  <th>Format</th>
+                  <th>Status</th>
+                  <th>Reason</th>
+                  <th>Source URL</th>
+                  <th>Server path</th>
+                </tr>
+              </thead>
+              <tbody id="fileRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="canvas-panel recovery-panel" id="decisionSection" hidden>
+          <div class="dataset-section-head compact">
+            <h2>Recovery options</h2>
+            <button type="button" class="action-btn" id="addUrlBtn">Add URL</button>
+          </div>
+          <div id="addedUrlRows"></div>
+          <div class="decision-grid">
             <label class="field">
-              <span>Title</span>
-              <input class="dataset-inline-input" id="jobTitle" placeholder="Urban heat island risk" />
+              <span>Action</span>
+              <select id="decisionSelect">
+                <option value="continue_with_approved">Continue with approved</option>
+                <option value="search_more">Search more</option>
+                <option value="stop_insufficient">Stop insufficient</option>
+                <option value="request_manual_access">Request manual access</option>
+              </select>
             </label>
             <label class="field">
-              <span>Abstract</span>
-              <textarea id="jobAbstract" rows="5" placeholder="Describe the data needed for the idea."></textarea>
+              <span>Missing requirements</span>
+              <textarea id="missingRequirements" rows="4"></textarea>
             </label>
-          </div>
-          <div id="datasetRequirementFields" class="mode-fields" hidden>
             <label class="field">
-              <span>Dataset requirement</span>
-              <textarea id="jobDatasetRequirement" rows="5" placeholder="Enter a dataset requirement statement."></textarea>
+              <span>Suggested queries</span>
+              <textarea id="suggestedQueries" rows="4"></textarea>
+            </label>
+            <label class="field">
+              <span>Reviewer comment</span>
+              <textarea id="reviewComment" rows="4"></textarea>
+            </label>
+            <label class="field">
+              <span>Platform hints</span>
+              <textarea id="platformHints" class="dataset-hint-textarea" rows="4" placeholder="One platform name/URL/domain per line."></textarea>
             </label>
           </div>
-          <label class="field">
-            <span>Platform hints</span>
-            <textarea id="jobPlatformHints" class="dataset-hint-textarea" rows="4" placeholder="One platform name/URL/domain per line."></textarea>
-          </label>
-        </div>
-        <div class="dataset-submit-row">
-          <button type="button" class="send-btn" id="createJobBtn">Create job</button>
-        </div>
-      </section>
-
-      <section class="dataset-section" id="statePanel">
-        <div class="dataset-section-head">
-          <div>
-            <p class="settings-kicker">Current Job</p>
-            <h2 id="currentJobTitle">No job loaded</h2>
+          <div id="searchMorePrefillPreview" class="requirement-meta" hidden></div>
+          <div class="dataset-submit-row">
+            <button type="button" class="send-btn" id="submitReviewBtn">Submit recovery action</button>
           </div>
-          <span class="pill" id="currentJobId">No job</span>
-        </div>
-        <p class="status-line muted" id="stateMessage">Create a job or load one from recent jobs.</p>
-        <button id="retryFailedStepButton" class="secondary" hidden>Retry failed step</button>
-      </section>
+        </section>
 
-      <section class="dataset-section" id="requirementsSection" hidden>
-        <div class="dataset-section-head compact">
-          <h2>Requirements</h2>
-        </div>
-        <div id="requirementRows" class="requirements-list"></div>
-      </section>
+        <section class="canvas-panel" id="confirmationSection" hidden>
+          <pre class="step-body" id="judgmentBody"></pre>
+        </section>
+      </main>
+    </div>
+  </div>
 
-      <section class="dataset-section" id="candidateSection" hidden>
-        <div class="dataset-section-head">
-          <div>
-            <p class="settings-kicker">Candidates</p>
-            <h2>Human review</h2>
-          </div>
-          <div class="candidate-controls">
-            <label class="candidate-limit-field">
-              <span>Show</span>
-              <input type="number" id="candidateDisplayLimit" min="1" max="20" value="20" />
-            </label>
-            <span class="pill" id="candidateCount">0 selected</span>
-          </div>
-        </div>
-        <div class="dataset-table-wrap">
-          <table class="dataset-table">
-            <thead>
-              <tr>
-                <th>Approve</th>
-                <th>Dataset</th>
-                <th>Provider</th>
-                <th>Role</th>
-                <th>Coverage</th>
-                <th>Reject</th>
-              </tr>
-            </thead>
-            <tbody id="candidateRows"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="dataset-section" id="decisionSection" hidden>
-        <div class="dataset-section-head compact">
-          <h2>Review decision</h2>
-          <button type="button" class="action-btn" id="addUrlBtn">Add URL</button>
-        </div>
-        <div id="addedUrlRows"></div>
-        <div class="decision-grid">
-          <label class="field">
-            <span>Action</span>
-            <select id="decisionSelect">
-              <option value="continue_with_approved">Continue with approved</option>
-              <option value="search_more">Search more</option>
-              <option value="stop_insufficient">Stop insufficient</option>
-              <option value="request_manual_access">Request manual access</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Missing requirements</span>
-            <textarea id="missingRequirements" rows="4"></textarea>
-          </label>
-          <label class="field">
-            <span>Suggested queries</span>
-            <textarea id="suggestedQueries" rows="4"></textarea>
-          </label>
-          <label class="field">
-            <span>Reviewer comment</span>
-            <textarea id="reviewComment" rows="4"></textarea>
-          </label>
-          <label class="field">
-            <span>Platform hints</span>
-            <textarea id="platformHints" class="dataset-hint-textarea" rows="4" placeholder="One platform name/URL/domain per line."></textarea>
-          </label>
-        </div>
-        <div class="dataset-submit-row">
-          <button type="button" class="send-btn" id="submitReviewBtn">Submit review</button>
-        </div>
-      </section>
-
-      <section class="dataset-section" id="confirmationSection" hidden>
-        <div class="dataset-section-head">
-          <div>
-            <p class="settings-kicker">Confirmation</p>
-            <h2>Bundle may be insufficient</h2>
-          </div>
-        </div>
-        <pre class="step-body" id="judgmentBody"></pre>
-        <div class="dataset-submit-row">
-          <button type="button" class="send-btn" id="forceDownloadBtn">Force download approved URLs</button>
-        </div>
-      </section>
-
-      <section class="dataset-section" id="resourcePlanSection" hidden>
-        <div class="dataset-section-head">
-          <div>
-            <p class="settings-kicker">Resource plan</p>
-            <h2>Planned resources</h2>
-          </div>
-        </div>
-        <div id="resourcePlanRows"></div>
-      </section>
-
-      <section class="dataset-section" id="resultSection" hidden>
-        <div class="dataset-section-head">
-          <div>
-            <p class="settings-kicker">Result</p>
-            <h2>Downloaded files</h2>
-          </div>
-        </div>
-        <div class="dataset-table-wrap">
-          <table class="dataset-table">
-            <thead>
-              <tr>
-                <th>File</th>
-                <th>Size</th>
-                <th>Format</th>
-                <th>Status</th>
-                <th>Reason</th>
-                <th>Source URL</th>
-                <th>Local path</th>
-              </tr>
-            </thead>
-            <tbody id="fileRows"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="dataset-section">
-        <div class="dataset-section-head compact">
-          <h2>Recent jobs</h2>
-          <button type="button" class="action-btn" id="refreshJobsBtn">Refresh</button>
-        </div>
-        <div id="recentJobs"></div>
-      </section>
-    </main>
+  <div class="auth-overlay" id="authOverlay" hidden>
+    <section class="auth-card dataset-auth-card">
+      <p class="settings-kicker">Private Access</p>
+      <h2>Sign in to use Urban Dataset Downloader</h2>
+      <p class="muted">Guests can run one dataset search. Sign in for unlimited searches in this session.</p>
+      <form class="auth-form" id="datasetAuthForm">
+        <label>
+          <span>Username</span>
+          <input id="authUsername" autocomplete="username" placeholder="Username" />
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="authPassword" type="password" autocomplete="current-password" placeholder="Password" />
+        </label>
+        <p class="status-line error" id="authError" aria-live="polite"></p>
+        <button type="submit" class="send-btn">Sign in</button>
+      </form>
+      <button type="button" class="secondary guest-login-btn" id="guestLoginBtn">Continue as guest</button>
+    </section>
   </div>
 
   <script src="./config.js"></script>
-  <script src="./dataset-page-core.js?v=20260518-resource-plan"></script>
-  <script src="./dataset-page.js?v=20260523-dataset-config"></script>
+  <script src="./dataset-page-core.js?v=20260606-auth-v1"></script>
+  <script src="./dataset-page.js?v=20260606-auth-v1"></script>
 </body>
 </html>
