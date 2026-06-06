@@ -6,6 +6,7 @@
   const DATASET_PAGE_API_BASE = String(DATASET_PAGE_CONFIG.API_BASE || "").replace(/\/+$/, "");
   const POLL_INTERVAL_MS = 1600;
   const RUNNING_STATES = new Set(["searching", "judging_bundle", "planning_resources", "downloading"]);
+  const AUTH_TOKEN_KEY = "dataset_downloader_auth_token";
 
   let currentJob = null;
   let candidates = [];
@@ -18,6 +19,7 @@
   let createJobInFlight = false;
   let userStoppedTracking = false;
   let authState = { authenticated: false, role: "", username: "", guest_remaining_jobs: 0 };
+  let authToken = "";
 
   const els = {
     llmBadge: document.getElementById("llmBadge"),
@@ -240,9 +242,14 @@
   }
 
   async function apiFetch(path, options) {
+    const headers = { ...((options && options.headers) || {}) };
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
+    }
     const res = await fetch(apiUrl(path), {
       credentials: "include",
       ...(options || {}),
+      headers,
     });
     const payload = await res.json().catch(() => ({}));
     if (res.status === 401) {
@@ -266,6 +273,25 @@
     if (els.authError) els.authError.textContent = "";
   }
 
+  function loadStoredAuthToken() {
+    try {
+      authToken = sessionStorage.getItem(AUTH_TOKEN_KEY) || "";
+    } catch (_) {
+      authToken = "";
+    }
+  }
+
+  function storeAuthToken(token) {
+    authToken = String(token || "");
+    try {
+      if (authToken) {
+        sessionStorage.setItem(AUTH_TOKEN_KEY, authToken);
+      } else {
+        sessionStorage.removeItem(AUTH_TOKEN_KEY);
+      }
+    } catch (_) {}
+  }
+
   function renderAuthState() {
     if (els.authBadge) {
       if (!authState.authenticated) {
@@ -284,6 +310,9 @@
   async function loadAuthState() {
     const payload = await apiFetch("/api/auth/status");
     authState = payload || {};
+    if (authState && authState.token) {
+      storeAuthToken(authState.token);
+    }
     renderAuthState();
     if (authState.authenticated) {
       hideAuthOverlay();
@@ -304,6 +333,9 @@
       }),
     });
     authState = payload || {};
+    if (authState && authState.token) {
+      storeAuthToken(authState.token);
+    }
     renderAuthState();
     hideAuthOverlay();
     await loadRecentJobs();
@@ -312,6 +344,9 @@
   async function loginAsGuest() {
     const payload = await apiFetch("/api/auth/guest", { method: "POST" });
     authState = payload || {};
+    if (authState && authState.token) {
+      storeAuthToken(authState.token);
+    }
     renderAuthState();
     hideAuthOverlay();
     await loadRecentJobs();
@@ -320,6 +355,7 @@
   async function logout() {
     await apiFetch("/api/auth/logout", { method: "POST" }).catch(() => ({}));
     authState = { authenticated: false, role: "", username: "", guest_remaining_jobs: 0 };
+    storeAuthToken("");
     renderAuthState();
     resetSearchCanvas();
     showAuthOverlay();
@@ -1911,6 +1947,7 @@
   }
 
   bindEvents();
+  loadStoredAuthToken();
   loadAuthState()
     .then((state) => {
       if (state && state.authenticated) {
