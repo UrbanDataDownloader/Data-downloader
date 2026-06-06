@@ -1,3 +1,3 @@
 window.__APP_CONFIG__ = {
-  API_BASE: "https://descending-dense-exact-integration.trycloudflare.com",
+  API_BASE: "https://chelsea-trend-oral-recovery.trycloudflare.com",
 };
