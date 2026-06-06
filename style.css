@@ -1942,8 +1942,7 @@ body.dataset-workbench {
   padding: 0.78rem 0.86rem;
 }
 
-.job-activity[hidden],
-.skeleton-stack[hidden] {
+.job-activity[hidden] {
   display: none;
 }
 
@@ -1974,25 +1973,6 @@ body.dataset-workbench {
   cursor: pointer;
   font-weight: 800;
   padding: 0.5rem 0.72rem;
-}
-
-.skeleton-stack {
-  display: grid;
-  gap: 0.7rem;
-  margin-top: 1rem;
-}
-
-.skeleton-card {
-  height: 86px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: linear-gradient(90deg, #eef2f8 0%, #f8faff 46%, #eef2f8 100%);
-  background-size: 220% 100%;
-  animation: dataset-shimmer 1.25s linear infinite;
-}
-
-.skeleton-card.short {
-  width: 78%;
 }
 
 .result-summary-line {

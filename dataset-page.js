@@ -53,7 +53,6 @@
     jobActivityText: document.getElementById("jobActivityText"),
     jobActivitySubtext: document.getElementById("jobActivitySubtext"),
     stopSearchBtn: document.getElementById("stopSearchBtn"),
-    searchSkeleton: document.getElementById("searchSkeleton"),
     requirementsSection: document.getElementById("requirementsSection"),
     requirementRows: document.getElementById("requirementRows"),
     candidateSection: document.getElementById("candidateSection"),
@@ -399,9 +398,6 @@
     }
     if (els.jobActivityIndicator) {
       els.jobActivityIndicator.hidden = !running;
-    }
-    if (els.searchSkeleton) {
-      els.searchSkeleton.hidden = !running;
     }
     if (els.jobActivityText && running) {
       els.jobActivityText.textContent = activityText;
